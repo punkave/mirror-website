@@ -1,0 +1,32 @@
+{
+  "name": "mirror-website",
+  "version": "1.0.0",
+  "description": "Mirrors websites in a useful way, with corrected links and local copies of assets.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/punkave/mirror-website.git"
+  },
+  "keywords": [
+    "website",
+    "mirror",
+    "website",
+    "mirror"
+  ],
+  "author": "P'unk Avenue LLC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/punkave/mirror-website/issues"
+  },
+  "homepage": "https://github.com/punkave/mirror-website#readme",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "boring": "^0.1.0",
+    "cheerio": "^1.0.0-rc.2",
+    "fs-extra": "^5.0.0",
+    "request-promise": "^4.2.2"
+  }
+}
