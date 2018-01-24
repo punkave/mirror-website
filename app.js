@@ -1,12 +1,3 @@
-// TODO deal with this hot garbage:
-//
-// <html><head><script language="javascript">location='/en-us/events/get-social.htm';</script></head><body></body></html>
-
-// reservations/index.html should be:
-//
-// <script>location = '/reservation/reservation.htm';</script>
-
-console.log('DO NOT FORGET you have to replace the reservation redirector see comments');
 var argv = require('boring')();
 var Promise = require('bluebird');
 var request = require('request-promise');
@@ -62,7 +53,9 @@ function mirrorSite(site) {
       'font/ttf': 'ttf',
       'application/x-font-woff': 'woff',
       'application/vnd.ms-fontobject': 'eot',
-      'application/pdf': 'pdf'
+      'application/pdf': 'pdf',
+      'image/x-icon': 'ico',
+      'application/javascript': 'js'
     },
     extensionToExtension: {
       'eot': 'eot'
@@ -105,6 +98,8 @@ function mirrorSite(site) {
         function: function(url, body) {
           var $ = cheerio.load(body);
           _.each(config.urlAttrs, fix);
+          // console.log($.html());
+          // process.exit(1);
           return $.html();
           function fix(attr) {
             $('[' + attr + ']').each(function() {
@@ -156,9 +151,6 @@ function mirrorSite(site) {
       allowed.push('www.' + parsed.hostname);
     }
   }
-
-  console.log(allowed);
-  process.exit(0);
 
   var defaultHostname = parsed.hostname;
 
@@ -300,18 +292,16 @@ function mirrorSite(site) {
 
   function remap(url, newUrl) {
     newUrl = require('url').resolve(url, newUrl);
-    if (newUrl.match(/gallery\.htm/)) {
-      console.log('remapping ' + newUrl);
-    }
     var hashAt = newUrl.indexOf('#');
     var hash = '';
     var path;
     if (hashAt !== -1) {
       hash = newUrl.substr(hashAt);
       path = newUrl.substr(0, hashAt);
+    } else {
+      path = newUrl;
     }
     if (_.has(urlMap, path)) {
-      console.log('found it');
       return urlMap[path] + hash;
     }
     return newUrl;
@@ -337,6 +327,9 @@ function merge(target, from) {
     if (val && val.$append) {
       target[key] = target[key] || [];
       target[key] = target[key].concat(val.$append);
+    } else if (val && val.$merge) {
+      target[key] = target[key] || {};
+      _.merge(target[key], val.$merge);      
     } else {
       target[key] = val;
     }
