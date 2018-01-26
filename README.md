@@ -10,9 +10,11 @@ Have you seen websites lately? Every single one is a special snowflake with unus
 
 Create a folder for your mirror and create a `config.js` file there. Make sure you export a `sites` property, which should be an array in which every entry has a `url` property and, optionally, `aliases` (an array of hostnames considered equivalent to the main one).
 
-Then run:
+You can also set properties like `aliases` under a `defaults` key, which applies to every site.
 
-`node app`
+Then cd to your mirror project folder (where `config.js` lives) and run:
+
+`mirror-website`
 
 This creates a subdirectory in the current directory named after the domain name in your URL.
 
