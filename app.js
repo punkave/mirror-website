@@ -14,7 +14,18 @@ if (argv._.length === 0) {
 }
 
 try {
-  configFile = require(require('path').resolve(process.cwd(), configFile));
+  // Yes, this is weird. The config js file may be anywhere;
+  // we want it to be able to require `_` and `cheerio`
+  // conveniently from our world.
+  configFile = eval(
+    '(function() {' +
+    '  module = {};\n' +
+    fs.readFileSync(
+      require('path').resolve(process.cwd(), configFile),
+      'utf8'
+    ) + '\nreturn module.exports;\n' +
+    '})();'
+  );
 } catch(e) {
   console.error('Unable to read ' + argv._[0] + ', check for syntax errors and see the documentation');
   console.error(e);
@@ -332,7 +343,7 @@ function mirrorSite(site) {
 
 function usage(message) {
   console.error(message + '\n');
-  console.error('Usage: mirror-website url');
+  console.error('Usage: mirror-website [config.js path, if not in current folder]');
   process.exit(1);
 }
 

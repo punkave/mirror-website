@@ -10,6 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/punkave/mirror-website.git"
   },
+  "bin": {
+    "mirror-website": "./bin/mirror-website"
+  },
   "keywords": [
     "website",
     "mirror",
