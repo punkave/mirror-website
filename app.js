@@ -65,7 +65,6 @@ function mirrorSite(site) {
       {
         type: 'text/html',
         function: function(urls, url, body) {
-          body = body.toString('utf8');
           var $ = cheerio.load(body);
           _.each(config.urlAttrs, function(attr) {
             $('[' + attr + ']').each(function() {
@@ -282,11 +281,26 @@ function mirrorSite(site) {
     });
   }
 
-  function get(url) {
+  function get(url, _retries) {
     return request({
       uri: url,
       resolveWithFullResponse: true,
       encoding: null
+    }).catch(function(e) {
+      if (!_retries) {
+        _retries = 0;
+      }
+      if (e.statusCode >= 500) {
+        retries++;
+        if (retries >= 10) {
+          throw e;
+        }
+        return Promise.delay(1000).then(function() {
+          console.log('RETRYING: ' + url);
+          return get(url, retries);
+        });
+      }
+      throw e;
     });
   }
 
