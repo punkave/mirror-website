@@ -37,10 +37,10 @@ if (!configFile.sites) {
 }
 
 return Promise.mapSeries(configFile.sites, mirrorSite).then(function() {
-  console.log('All sites mirrored.');
+  console.log('Finished.');
   process.exit(0);
 }).catch(function(e) {
-  console.error('An error occurred during mirroring:', e);
+  console.error('An error occurred:', e);
   process.exit(1);
 });
 
@@ -173,7 +173,11 @@ function mirrorSite(site) {
   }
   
   return Promise.try(function() {
-    return mirror(url);
+    if (argv['generate-mechanic-commands']) {
+      return generateMechanicCommands();
+    } else {
+      return mirror(url);
+    }
   });
 
   function mirror(url) {
@@ -339,11 +343,23 @@ function mirrorSite(site) {
     }
     return true;
   }
+
+  function generateMechanicCommands() {
+    if (!argv['mechanic-prefix']) {
+      usage('The --mechanic-prefix option is required, to specify a parent folder on the server.');
+    }
+    var hostname = require('url').parse(config.url).hostname;
+    var basename = require('path').basename(config.folder);
+    var shortname = basename.replace(/\./g, '-');
+    console.log('mechanic add ' + shortname + ' --host=' + hostname + ' --aliases=www.' + hostname + ' --static=' + argv['mechanic-prefix'] + '/' + basename + ' --autoindex');
+  }
 }
 
 function usage(message) {
   console.error(message + '\n');
-  console.error('Usage: mirror-website [config.js path, if not in current folder]');
+  console.error('Usage: mirror-website [config.js path, if not in current folder] [--generate-mechanic-commands --mechanic-prefix=/var/www]');
+  console.error('\nNote that generating mechanic commands is a separate, optional action for convenience');
+  console.error('if you use mechanic to manage nginx and are hosting these statically.');
   process.exit(1);
 }
 
