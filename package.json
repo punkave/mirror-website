@@ -30,6 +30,7 @@
     "boring": "^0.1.0",
     "cheerio": "^1.0.0-rc.2",
     "fs-extra": "^5.0.0",
+    "request": "^2.83.0",
     "request-promise": "^4.2.2"
   }
 }

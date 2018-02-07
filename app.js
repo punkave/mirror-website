@@ -131,7 +131,8 @@ function mirrorSite(site) {
           });
         }
       }
-    ]
+    ],
+    remap: remap
   };
 
   merge(config, _.clone(configFile.defaults));
@@ -265,7 +266,7 @@ function mirrorSite(site) {
             return;
           }
           return Promise.try(function() {
-            return discoverer.function(urls, url, body.toString('utf8'));
+            return discoverer.function(urls, url, body.toString('utf8'), config);
           });
         });
       }).then(function() {
@@ -282,7 +283,7 @@ function mirrorSite(site) {
           }
           some = true;
           return Promise.try(function() {
-            return rewriter.function(url, body.toString('utf8'))
+            return rewriter.function(url, body.toString('utf8'), config)
           }).then(function(_body) {
             body = _body;
             some = true;
