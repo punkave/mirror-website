@@ -128,3 +128,7 @@ module.exports = {
 
 You can specify another filename on the command line.
 
+## Changelog
+
+1.0.1: `request` dependency for `request-promise`.
+
