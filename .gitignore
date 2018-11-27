@@ -5,4 +5,6 @@ finchandforkrestaurant.com-good
 finchandforkrestaurant.com/
 sites
 assets
+# trust semver ranges, don't be constantly insecure
+package-lock.json
 ./sync-to-staging.js

@@ -2,30 +2,22 @@
 
 Have you seen websites lately? Every single one is a special snowflake with unusual requirements if you are going to mirror it as a static site. `mirror-website` is designed from the beginning with the expectation that you'll need to write some code for those cases. And `mirror-website` makes it really easy to do that.
 
-## Installation
-
-`npm install -g mirror-website`
-
 ## Usage
 
-Create a folder for your mirror and create a `config.js` file there. Make sure you export a `sites` property, which should be an array in which every entry has a `url` property and, optionally, `aliases` (an array of hostnames considered equivalent to the main one).
+1. Create your own project, with `git init` and `npm init`, in the usual way. Also `npm install` tools like `lodash` and `cheerio` that you may wish to use.
+2. `npm install mirror-website`
+3. Write your `app.js`. You'll write `preprocessors` (which modify the markup first), `discoverers` (which seek out URLs to be mirrored), and `rewriters` (your last chance to modify the markup). Here are some examples.
 
-You can also set properties like `aliases` under a `defaults` key, which applies to every site.
-
-Then cd to your mirror project folder (where `config.js` lives) and run:
-
-`mirror-website`
-
-This creates a subdirectory in the current directory named after the domain name in your URL.
-
-Here is a fancy example of what can be done in your own `config.js` file to address special cases:
+Note the use of `$append`. Without this, you're replacing all of the standard preprocessors, discoverers and rewriters bundled with `mirror-website`. You probably don't want to do that.
 
 ```javascript
-var _ = require('lodash');
-var cheerio = require('cheerio');
-var fs = require('fs');
+```javascript
+const _ = require('lodash');
+const cheerio = require('cheerio');
+const fs = require('fs');
+const mirror = require('mirror-website');
 
-module.exports = {
+mirror({
 
   // Define the sites to be mirrored. We can override properties for
   // individual sites in these objects too, the stuff in "defaults"
@@ -46,6 +38,15 @@ module.exports = {
     urlAttrs: {
       $append: [ 'altsrc', 'data-original', 'data-original-alt' ]
     },
+    preprocessors: {
+      $append: [
+        // A chance to modify the body before any URL discoverers run
+        function(url, body) {
+          // modify body, then...
+          return body;
+        }
+      ]
+    },
     discoverers: {
       $append: [
         {
@@ -53,7 +54,7 @@ module.exports = {
           // Push them onto the urls array to make sure they get crawled
           type: 'text/html',
           function: function(urls, url, body) {
-            var matches = body.match(/location=\'(.*?)\'/);
+            const matches = body.match(/location=\'(.*?)\'/);
             if (matches) {
               urls.push(matches[1]);
             }
@@ -74,23 +75,26 @@ module.exports = {
           }
         },
         {
-          // Replace contact forms with a mailto link and
-          // instructions to provide the same fields (remember,
-          // this is a static site now; mailto: forms do not
-          // really work anymore in 2017)
+          // Replace custom contact forms found on a particular
+          // site with a mailto link and instructions to
+          // provide the same fields. This logic is specific to
+          // the sites I was mirroring that day. The point is
+          // to give you the same flexibility
+
           type: 'text/html',
+
           function: function(url, body) {
-            var $ = cheerio.load(body);
-            var $old = $('form.fancy');
+            const $ = cheerio.load(body);
+            const $old = $('form.fancy');
             if (!$old.length) {
               return body;
             }
-            var mailto = $old.attr('emailto');
-            var $link = $('<p style="margin-top: 32px"><a>Please reach out via email to ' + mailto + '.</a></p>');
+            const mailto = $old.attr('emailto');
+            const $link = $('<p style="margin-top: 32px"><a>Please reach out via email to ' + mailto + '.</a></p>');
             $link.find('a').attr('href', 'mailto:' + mailto);
-            var $prompt = $('<p style="margin-top: 32px">Be sure to include the following information:</p>');
-            var $list = $('<ul></ul>');
-            var venue = $('title').text().replace(/^[\s\S]*\|\s*/, '');
+            const $prompt = $('<p style="margin-top: 32px">Be sure to include the following information:</p>');
+            const $list = $('<ul></ul>');
+            const venue = $('title').text().replace(/^[\s\S]*\|\s*/, '');
             if (venue) {
               var $item = $('<li></li>');
               $item.text('Name of venue: ' + venue);
@@ -103,7 +107,7 @@ module.exports = {
               $item.text($(this).text());
               $list.append($item);
             });
-            var $new = $('<div></div>');
+            const $new = $('<div></div>');
             $new.append($link);
             $new.append($prompt);
             $new.append($list);
@@ -115,20 +119,31 @@ module.exports = {
     }
   },
 
-  // Custom callback to modify the config for each site before it actually gets mirrored
+  // Custom callback to modify the config for each site
+  // before it actually gets mirrored
   init: function(config) {
     // Change foo.com into just foo, so we do not add domain names
     // when creating folders, and use a "sites/" parent folder
     config.folder = 'sites/' + config.folder.replace(/\.[^/]+$/, '');
   }
-};
+}).then(function() {
+  console.log('Done!');
+})
 ```
 
-## If `config.js` doesn't float your boat
+Note that the configuration object must have a `sites` property, which should be an array in which every entry has a `url` property and, optionally, `aliases` (an array of hostnames considered equivalent to the main one).
 
-You can specify another filename on the command line.
+You can also set properties like `aliases` under a `defaults` key, which applies to every site.
+
+Then run your application:
+
+```
+node app
+```
+
+This creates a subdirectory in the current directory named after the domain name in your URL.
 
 ## Changelog
 
+2.0.0: abandoned global install in favor of a library for better maintainability and error messages.
 1.0.1: `request` dependency for `request-promise`.
-
